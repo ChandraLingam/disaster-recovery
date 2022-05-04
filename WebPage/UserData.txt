@@ -3,6 +3,6 @@ yum update -y
 yum install -y httpd
 systemctl start httpd
 systemctl enable httpd
-curl -s -o /var/www/html/index.html https://raw.githubusercontent.com/ChandraLingam/disaster-recovery/main/index.html
+curl -s -o /var/www/html/index.html https://raw.githubusercontent.com/ChandraLingam/disaster-recovery/main/WebPage/index.html
 echo "done"
 
