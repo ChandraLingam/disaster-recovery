@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">    
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js"></script>    
+  </head>
+
+  <body class="container">
+    <h2>Products Editor</h2>
+    <h6><a href="https://www.cloudwavetraining.com/" target="_blank">Cloud Wave LLC</a></h6>
+
+    <div >
+      <div class="jumbotron">
+        <div class="card">          
+          <span id="error">Testing...</span>
+          <div class="card-body">
+              <h4 class="card-title text-center">Products</h4>
+   
+              
+              <!--Products Table -->
+              <div class="table-responsive" id="products_table">  
+              <table class="table table-hover table-dark">
+                  <thead>
+                    <tr>
+                      <th scope="col">product_id</th>
+                      <th scope="col">product_category</th>
+                      <th scope="col">product_title</th>
+                      <th scope="col">Edit</th>
+                      <th scope="col">Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody id="myTable"></tbody>
+                </table> 
+                </div>
+
+                <!--Button for Refresh Table: Optional-->
+                <div class="row">
+                    <div class="col-md-12 text-right">
+                    <button type=button class="btn btn-info" onclick="apigw_call()"> Refresh Table </button>                    
+                    </div>
+                </div>  
+                <br>
+
+              <!--Form for Adding / Editting Products-->
+              <hr>  
+              <div id="add_edit_product_form">
+                <h4 style="text-align: center;">Add / Edit Product</h4>
+                <form onsubmit= "event.preventDefault(); onFormSubmit();">
+                <div class="form-col">
+                    <br>
+                    <div class="form-group col" style="display:none">
+                        <input type="text" class="form-control" product_id="product_id" placeholder="Product ID" id="product_id2">
+                    </div>
+
+                    <div class="form-group col">
+                        <input type="text" class="form-control" product_category="product_category" placeholder="Category of Product" id="product_category2">
+                    </div>
+
+                    <div class="form-group col">
+                        <input type="text" class="form-control" product_title="product_title" placeholder="Product Title" id="product_title2">
+                    </div>
+                    
+                    <div class="form-action-buttons col">
+                        <input type="submit" class="form-control" value="Submit">
+                    </div>
+                    
+                </form>
+                </div>
+            </div>
+            <hr>                    
+        </div>
+      </div>
+    </div>
+
+    
+    <script>
+        // TODO: Update API_GW_URI
+        // to point to your product API Invoke URL
+        // *** ensure there is a / at the end ***
+        // let API_GW_URI = "https://youruri.amazonaws.com/";
+                
+        // Example:
+        let API_GW_URI =  "https://h4vnrjw9q7.execute-api.us-west-2.amazonaws.com/oregon/";
+        
+        
+        let errorText = document.getElementById("error");
+        errorText.style.color = "red";  
+        errorText.textContent = "";
+
+        //Load Products Table When Page Opens
+        apigw_call();
+        
+        //This Variable Determines Whether to Edit or Add Product
+        //If Null: Add Product Using POST Request
+        //If Not Null: Edit Product Using PUT Request
+        var selectedRow = null;
+
+        //Action to Take When Each Form is Submitted
+        //Read Input Data From Form
+        //Decide Whether to Add or Edit Product Based on Variable
+        //Scroll to Appropriate Section
+        //Reset Form After Submission
+        function onFormSubmit(){
+            var formData = readFormData();
+            if (selectedRow == null){
+              post_apigw_call(JSON.stringify(formData));
+              scroll_to_products();
+            }
+            else {
+              put_apigw_call(JSON.stringify(formData));
+              scroll_to_products();
+            }
+            resetForm();
+        }
+
+
+        //Put the Input Data Typed into the Form into 1 Object and Return It
+        function readFormData(){
+            var formData={};
+            formData["product_title"] = document.getElementById("product_title2").value;
+            formData["product_category"] = document.getElementById("product_category2").value;
+            formData["product_id"] = document.getElementById("product_id2").value;
+            return formData;
+        }
+
+  
+        //Reset Forms
+        function resetForm(){
+          document.getElementById("product_title2").value = "";
+          document.getElementById("product_category2").value = "";
+          selectedRow = null;
+        }
+
+
+        //Create Products Table
+        function buildtable(data){
+            var table = document.getElementById('myTable');
+            
+            //Clear Table
+            table.innerHTML="";
+
+            //Populate Table
+            //Edit, Delete Buttons Created for Each Row
+            //Click on Edit Button: Populate the Add / Edit Products Form, Scrolls to Add / Edit Products Form
+            //Click on Delete Button: Delete Product            
+            for (var i=0; i < data.length; i++){
+                var row = `<tr>
+                                <td>${data[i].product_id}</td>
+                                <td>${data[i].product_category}</td>
+                                <td>${data[i].product_title}</td>
+                                <td><button type='button' onclick='repopulate_form(this); scroll_to_edit();' class='btn btn-default'><i class="fas fa-edit" color='white'></i></button></td>
+                                <td><button type='button' onclick='delete_apigw_call(this);' class='btn btn-default'><i class="far fa-trash-alt" color="white"></i></button></td>
+                            <tr>` 
+                table.innerHTML += row
+            }
+        }
+
+        //Scroll to Appropriate Section When Buttons Clicked or Forms Submitted
+        function scroll_to_edit(){
+            var elmnt = document.getElementById("add_edit_product_form");
+            elmnt.scrollIntoView({behavior:"smooth"});
+        }
+
+        function scroll_to_products(){
+            var elmnt = document.getElementById("products_table");
+            elmnt.scrollIntoView({behavior:"smooth"});
+        }
+
+        //These Functions Are For Adding, Editting, Delete Products from Products Table
+        //Add Product Using Post Request
+        function post_apigw_call(formData)
+        {   
+            try
+            {
+                errorText.textContent = "";
+                const myHeaders = new Headers();
+
+                const myRequest = new Request(API_GW_URI + "products", {
+                    method: 'POST',
+                    body: formData,
+                    headers: myHeaders,
+                });
+
+                fetch(myRequest)
+                .then(response=>response.json())
+                .then(json => {
+                    console.log(json) 
+                    apigw_call();
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    errorText.textContent = "Error: " + err.name + " " + err.message;
+                });
+            }
+            catch (err)
+            {
+                console.log("Error: ", err.name, err.message);
+                errorText.textContent = "Error: " + err.name + " " + err.message;
+                return;
+            }
+        }
+
+
+        //Update Product Using Put Request
+        function put_apigw_call(formData)
+        { 
+            try
+            {
+                errorText.textContent = "";
+
+                const myHeaders = new Headers();
+                
+                const myRequest = new Request(API_GW_URI + "products", {
+                    method: 'PUT',
+                    body: formData,
+                    headers: myHeaders,
+                });
+
+                fetch(myRequest)
+                .then(response=>response.json())
+                .then(json => {
+                    console.log(json)
+                    apigw_call();
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    errorText.textContent = "Error: " + err.name + " " + err.message;
+                });
+            }
+            catch (err)
+            {
+                console.log("Error: ", err.name, err.message);
+                errorText.textContent = "Error: " + err.name + " " + err.message;
+                return;
+            }
+        }
+
+        //Delete Product Using Delete Request
+        function delete_apigw_call(td)
+        {
+            try
+            {
+                errorText.textContent = "";
+
+                //Get the Product ID from the Same Row of Delete Button
+                selectedRow = td.parentElement.parentElement;
+                const item_for_deletion = (selectedRow.cells[0].innerHTML);
+                console.log(item_for_deletion);
+
+                const myHeaders = new Headers();          
+
+                const myRequest = new Request(API_GW_URI + "products/" + item_for_deletion, {
+                    method: 'DELETE',
+                    mode: 'cors',
+                    headers: myHeaders
+                });
+
+                fetch(myRequest)
+                .then(response=>response.json())
+                .then(json => {
+                    console.log(json)
+                    apigw_call();
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    errorText.textContent = "Error: " + err.name + " " + err.message;
+                });
+            }
+            catch (err)
+            {
+                console.log("Error: ", err.name, err.message);
+                errorText.textContent = "Error: " + err.name + " " + err.message;
+                return;
+            }
+        }
+
+        //Automatically Populate Forms When Edit Products Icons / Buttons are Clicked
+        //Populates Add / Edit Products Form When Edit Button Clicked so User Can Make Required Changes and Submit
+        function repopulate_form(td){
+          selectedRow = td.parentElement.parentElement;
+          document.getElementById("product_title2").value = selectedRow.cells[2].innerHTML;
+          document.getElementById("product_category2").value = selectedRow.cells[1].innerHTML;
+          document.getElementById("product_id2").value = selectedRow.cells[0].innerHTML;
+        }
+
+
+        //Refresh and Load Products Table Using Get Request
+        function apigw_call()
+        {
+            try
+            {
+                console.log("hello world");               
+                
+                errorText.textContent = "";
+
+                const myHeaders = new Headers();
+
+                const myRequest = new Request(API_GW_URI + "products", {
+                    method: 'GET',
+                    headers: myHeaders,
+                    mode: 'cors',
+                    cache: 'default',
+                });
+
+                fetch(myRequest)
+                .then(response => response.json())
+                .then(data => {
+
+                    console.log(data.Items)
+                    //Build Table
+                    buildtable(data.Items)
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    errorText.textContent = "Error: " + err.name + " " + err.message;
+                });
+            }
+            catch (err)
+            {
+                console.log("Error: ", err.name, err.message);
+                errorText.textContent = "Error: " + err.name + " " + err.message;
+                return;
+            }
+        }
+
+    </script>
+  </div>
+</body>
+</html>
+
