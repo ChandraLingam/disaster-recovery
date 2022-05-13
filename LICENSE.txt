@@ -1,0 +1,14 @@
+The architectures and solutions presented in this guide are provided "as is" per the underlying LICENSE. 
+
+The training and material are meant for learners who attended the training taught by Chandra Lingam, Cloud Wave LLC. 
+If the material were used for training others, Cloud Wave LLC must be engaged as instructors for training 
+or adequately compensated.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Copyright 2022 Cloud Wave LLC. All Rights Reserved.
