@@ -1,0 +1,3 @@
+Table Name: product
+Partition Key: product_id (String)
+Capacity Mode: On-demand

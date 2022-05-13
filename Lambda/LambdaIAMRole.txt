@@ -1,0 +1,14 @@
+1. What can lambda access?
+
+Role: lambda-dynamodb-product
+Trust relationship: Lambda
+Permissions:
+ - AmazonDynamoDBFullAccess
+ - AWSLambdaBasicExecutionRole
+ 
+2. Who can call Lambda? 
+
+   API Gateway - we will grant permission using API Gateway console
+
+ 
+ 
